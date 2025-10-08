@@ -330,12 +330,15 @@
 	<script>
 
 const ModeType = {
-	CONTINUE: 2, // 続きから
+	CONTINUE: -1, // 続きから
 	HOME: 0,
 	INIT: 1, // 初めから
 	INTRO0: 1.1, // 説明 一頁目
 	INTRO1: 1.2, // 説明 二頁目
 	INTRO2: 1.3, // 説明 三頁目
+	SELECT_DESTINATION0: 2, // 目的地を選択 一頁目
+	SELECT_DESTINATION1: 3, // 目的地を選択 二頁目
+	SELECT_DESTINATION_ROULETTE: 4, // 目的地を選択 ルーレット
 };
 
 class Train {
@@ -407,6 +410,12 @@ function draw() {
 			break;
 		case ModeType.INTRO2:
 			message('「みなさんが　最初に　むかう場所は', '　夜叉姫（やしゃひめ）さんが', '　おつたえします！」', 'white', 'white');
+			break;
+		case ModeType.SELECT_DESTINATION0:
+			message('「夜叉姫です！」', '', '', 'white', 'white');
+			break;
+		case ModeType.SELECT_DESTINATION1:
+			message('「それでは　みなさんに', '　最初の　目的地を', '　決めていただきます！」', 'white', 'white');
 			break;
 	}
 }
@@ -482,6 +491,29 @@ function event(e) {
 			switch(e) {
 				case 'Escape':
 					mode = ModeType.INTRO1;
+					break;
+				case 'Enter':
+					mode = ModeType.SELECT_DESTINATION0;
+					break;
+			}
+			break;
+		case ModeType.SELECT_DESTINATION0:
+			switch(e) {
+				case 'Escape':
+					mode = ModeType.INTRO2;
+					break;
+				case 'Enter':
+					mode = ModeType.SELECT_DESTINATION1;
+					break;
+			}
+			break;
+		case ModeType.SELECT_DESTINATION1:
+			switch(e) {
+				case 'Escape':
+					mode = ModeType.SELECT_DESTINATION0;
+					break;
+				case 'Enter':
+					mode = ModeType.SELECT_DESTINATION_ROULETTE;
 					break;
 			}
 			break;
