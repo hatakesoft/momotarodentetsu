@@ -251,9 +251,11 @@
 <body>
 	<canvas id="canvas"></canvas>
 	<div id="blank"></div>
+	<div id="continue" class="screen">
+	</div>
 	<div id="home" class="screen active">
 		<button id='startButton'>初めから (i)</button>
-		<button id='continueButton'>続きから (l)</button>
+		<button id='continueButton'>続きから (c)</button>
 	</div>
 	<div id="init" class="screen">
 		<input id="trainName0" type="text" maxlength="8">
@@ -325,15 +327,15 @@
 			<option value="violet">紫</option>
 		</select>
 	</div>
-	<div id="loadData" class="screen">
-	</div>
 	<script>
 
 const ModeType = {
+	CONTINUE: 2, // 続きから
 	HOME: 0,
 	INIT: 1, // 初めから
-	INTRO1: 1.5, // 説明 一頁目
-	LOAD_DATA: 2, // 続きから
+	INTRO0: 1.1, // 説明 一頁目
+	INTRO1: 1.2, // 説明 二頁目
+	INTRO2: 1.3, // 説明 三頁目
 };
 
 class Train {
@@ -356,20 +358,26 @@ function showScreen(id) {
 	document.getElementById(id).classList.add('active');
 }
 
-function message(one, two, three, color) {
+function message(one, two, three, back, next) {
 	ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-	ctx.fillRect(n / 30, n / 30 * 21, n / 30 * 28, n / 30 * 8);
-	ctx.font = `${n / 16}px 游明朝`;
+	ctx.fillRect(n / 30, n / 30 * 23, n / 30 * 28, n / 30 * 6);
+	ctx.font = `${n / 24}px 游明朝`;
 	ctx.fillStyle = 'black';
-	ctx.fillText(one, n / 30 * 3, n / 9 * 7);
-	ctx.fillText(two, n / 30 * 3, n / 90 * 77);
-	ctx.fillText(three, n / 30 * 3, n / 15 * 14);
+	ctx.fillText(one, n / 30 * 3, n / 90 * 74);
+	ctx.fillText(two, n / 30 * 3, n / 90 * 79);
+	ctx.fillText(three, n / 30 * 3, n / 90 * 84);
+	ctx.beginPath();
+	ctx.moveTo(n / 30 * 26, n / 30 * 25);
+	ctx.lineTo(n / 30 * 28, n / 30 * 25);
+	ctx.lineTo(n / 30 * 27, n / 30 * 24);
+	ctx.fillStyle = back;
+	ctx.fill();
 	ctx.beginPath();
 	ctx.moveTo(n / 30 * 26, n / 30 * 27);
 	ctx.lineTo(n / 30 * 28, n / 30 * 27);
 	ctx.lineTo(n / 30 * 27, n / 30 * 28);
 	ctx.closePath();
-	ctx.fillStyle = color;
+	ctx.fillStyle = next;
 	ctx.fill();
 }
 
@@ -383,7 +391,7 @@ function draw() {
 			ctx.fillText('桃太郎電鉄', n / 22, n / 7 * 2);
 			break;
 		case ModeType.INIT:
-			message('社長の名前と', '電車の色を', '設定してください', 'white');
+			message('社長の　なまえと', '電車の　いろを', '設定して　ください！', 'white', 'white');
 			for(let i = 0; i < 4; i ++) {
 				ctx.fillStyle = train[i].color;
 				document.getElementById(`trainName${i}`).style.backgroundColor = `dark${train[i].color}`;
@@ -391,93 +399,127 @@ function draw() {
 				ctx.fillRect(n / 30, n / 6 * i + n / 60, n / 30 * 28, n / 6 - n / 60 * 2);
 			}
 			break;
+		case ModeType.INTRO0:
+			message('「社長の　みなさん！', '　すみよい　日本を　つくるための', '　開発を　おねがいします！」', 'white', 'white');
+			break;
+		case ModeType.INTRO1:
+			message('「まずは　国からの　援助金', '　１０００万円を　持って', '　スタートしてください！」', 'white', 'white');
+			break;
+		case ModeType.INTRO2:
+			message('「みなさんが　最初に　むかう場所は', '　夜叉姫（やしゃひめ）さんが', '　おつたえします！」', 'white', 'white');
+			break;
 	}
 }
 
-canvas.addEventListener('pointerdown', function(event) {
+function event(e) {
+	switch(mode) {
+		case ModeType.CONTINUE:
+			switch(e) {
+				case 'Escape':
+					mode = ModeType.HOME;
+					showScreen('home');
+					break;
+			}
+			break;
+		case ModeType.HOME:
+			switch(e) {
+				case 'c':
+					mode = ModeType.CONTINUE;
+					showScreen('continue');
+					break;
+				case 'i':
+					mode = ModeType.INIT;
+					showScreen('init');
+					train = [];
+					for(let i = 0; i < 4; i ++) {
+						let trainColor = document.querySelector(`#trainColor${i}`)
+						train.push(new Train('', trainColor.value));
+						trainColor.addEventListener('change', (event) => {
+							train[i].color = trainColor.value;
+							draw();
+						});
+					}
+					break;
+			}
+			break;
+		case ModeType.INIT:
+			switch(e) {
+				case 'Enter':
+					mode = ModeType.INTRO0;
+					for(let i = 0; i < 4; i ++) {
+						train[i].name = document.getElementById(`trainName${i}`).value;
+					}
+					showScreen('blank');
+					break;
+				case 'Escape':
+					mode = ModeType.HOME;
+					showScreen('home');
+					break;
+			}
+			break;
+		case ModeType.INTRO0:
+			switch(e) {
+				case 'Enter':
+					mode = ModeType.INTRO1;
+					break;
+				case 'Escape':
+					mode = ModeType.INIT;
+					showScreen('init');
+					break;
+			}
+			break;
+		case ModeType.INTRO1:
+			switch(e) {
+				case 'Enter':
+					mode = ModeType.INTRO2;
+					break;
+				case 'Escape':
+					mode = ModeType.INTRO0;
+					break;
+			}
+			break;
+		case ModeType.INTRO2:
+			switch(e) {
+				case 'Escape':
+					mode = ModeType.INTRO1;
+					break;
+			}
+			break;
+	}
+	draw();
+}
+
+canvas.addEventListener('pointerdown', function(e) {
 	const rect = canvas.getBoundingClientRect();
-	const mouseX = event.clientX - rect.left;
-	const mouseY = event.clientY - rect.top;
+	const mouseX = e.clientX - rect.left;
+	const mouseY = e.clientY - rect.top;
 	if(
+		mouseX - n / 30 * 26 >= 0 &&
+		mouseX - n / 30 * 26 <= n / 30 * 2 &&
+		mouseY - n / 30 * 24 >= Math.abs((mouseX - n / 30 * 26) - n / 30) &&
+		mouseY - n / 30 * 24 <= n / 30
+	) {
+		event('Escape');
+	} else if(
 		mouseX - n / 30 * 26 >= 0 &&
 		mouseX - n / 30 * 26 <= n / 30 * 2 &&
 		mouseY - n / 30 * 27 >= 0 &&
 		mouseY - n / 30 * 27 <= n / 30 - Math.abs((mouseX - n / 30 * 26) - n / 30)
 	) {
-		switch(mode) {
-			case ModeType.INIT:
-				mode = ModeType.INTRO1;
-				for(let i = 0; i < 4; i ++) {
-					train[i].name = document.getElementById(`trainName${i}`).value;
-				}
-				showScreen('blank');
-				break;
-		}
+		event('Enter');
 	}
-
-	draw();
 });
 
-window.addEventListener('keydown', function(event) {
-	switch(mode) {
-		case ModeType.HOME:
-			if(event.key === 'i') {
-				mode = ModeType.INIT;
-				showScreen('init');
-				train = [];
-				for(let i = 0; i < 4; i ++) {
-					let trainColor = document.querySelector(`#trainColor${i}`)
-					train.push(new Train('', trainColor.value));
-					trainColor.addEventListener('change', (event) => {
-						train[i].color = trainColor.value;
-						draw();
-					});
-				}
-			} else if(event.key === 'l') {
-				mode = ModeType.LOAD_DATA;
-				showScreen('loadData');
-			}
-			break;
-		case ModeType.INIT:
-			if(event.key === 'Enter') {
-				mode = ModeType.INTRO1;
-				for(let i = 0; i < 4; i ++) {
-					train[i].name = document.getElementById(`trainName${i}`).value;
-				}
-				showScreen('blank');
-			} else if(event.key == 'Escape') {
-				mode = ModeType.HOME;
-				showScreen('home');
-			}
-			break;
-		case ModeType.LOAD_DATA:
-			if(event.key === 'Escape') {
-				mode = ModeType.HOME;
-				showScreen('home');
-			}
-	}
-	draw();
+window.addEventListener('keydown', function(e) {
+	event(e.key);
 });
 
 document.getElementById('startButton').addEventListener('click', function() {
-	mode = ModeType.INIT;
-	showScreen('init');
-	train = [];
-	for(let i = 0; i < 4; i ++) {
-		let trainColor = document.querySelector(`#trainColor${i}`)
-		train.push(new Train('', trainColor.value));
-		trainColor.addEventListener('change', (event) => {
-			train[i].color = trainColor.value;
-			draw();
-		});
-	}
-	draw();
+	event('i');
 });
 
 document.getElementById('continueButton').addEventListener('click', function() {
-	mode = ModeType.LOAD_DATA;
-	showScreen('loadData');
-	draw();
+	event('c');
 });
 
 window.addEventListener('load', function() {
