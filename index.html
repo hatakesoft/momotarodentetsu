@@ -341,6 +341,14 @@ const ModeType = {
 	SELECT_DESTINATION_ROULETTE: 4, // 目的地を選択 ルーレット
 };
 
+class Station {
+	constructor(name, posX, posY) {
+		this.name = name;
+		this.posX = posX;
+		this.posY = posY;2
+	}
+}
+
 class Train {
 	constructor(name, color) {
 		this.name = name;
@@ -353,6 +361,7 @@ const ctx = canvas.getContext('2d');
 let mode = ModeType.HOME;
 let n;
 let train = [];
+let station = [];
 
 function showScreen(id) {
 	document.querySelectorAll('.screen').forEach(function(screen) {
